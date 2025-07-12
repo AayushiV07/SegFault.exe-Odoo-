@@ -1,7 +1,9 @@
 import React, { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom"; 
 
 export default function UserProfilePage() {
   const [name, setName] = useState("");
+  const navigate = useNavigate();
   const [location, setLocation] = useState("");
   const [availability, setAvailability] = useState("Weekends");
   const [skillsOffered, setSkillsOffered] = useState([]);
@@ -64,7 +66,10 @@ export default function UserProfilePage() {
           <button onClick={handleDiscard} className="bg-gray-700 hover:bg-gray-800 text-white px-5 py-2 rounded-md">
             Discard
           </button>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md">
+                  <button
+            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md"
+            onClick={() => navigate("/swaprequests")} // <-- Add this handler
+          >
             Swap Request
           </button>
           <button className="bg-gray-800 hover:bg-gray-900 text-white px-5 py-2 rounded-md">
