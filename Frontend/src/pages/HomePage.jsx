@@ -133,7 +133,7 @@ const HomePage = () => {
 
         <div className="flex items-center gap-4">
           <button
-            onClick={() => handleNavigation("/requests")}
+            onClick={() => handleNavigation("/swaprequests")}
             className="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 transition-colors"
           >
             Swap Request
