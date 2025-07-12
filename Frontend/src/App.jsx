@@ -64,6 +64,7 @@ import HeroPage from "./pages/HeroPage";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
+import SwapRequestsPage from "./pages/SwapRequestsPage";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -87,6 +88,7 @@ function App() {
         <Route path="/signup" element={!user ? <SignupPage /> : <Navigate to="/home" />} />
         <Route path="/profile" element={<UserProfilePage />} />
         <Route path="/home" element={user ? <HomePage /> : <Navigate to="/login" />} />
+        <Route path="/swaprequests" element={<SwapRequestsPage />} />
       </Routes>
     </Router>
   );
