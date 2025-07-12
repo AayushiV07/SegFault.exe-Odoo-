@@ -1,20 +1,24 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase"; // 👈 Adjust path accordingly
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Here you’d normally call an API or check auth
-    alert("Logged in successfully!");
-
-    navigate("/home"); // 👈 navigate to HomePage
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      alert("Logged in successfully!");
+      navigate("/home");
+    } catch (error) {
+      alert("Invalid credentials. Please try again.");
+      navigate("/login"); // stays or redirects back
+    }
   };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-950 flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-gray-800 rounded-2xl shadow-xl p-8 space-y-6">

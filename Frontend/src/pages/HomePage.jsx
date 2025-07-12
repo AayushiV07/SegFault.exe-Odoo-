@@ -1,16 +1,49 @@
-
-
-// export default HomePage;
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 const HomePage = () => {
-  const [currentUser, setCurrentUser] = useState({
-    photoURL:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    name: "John Doe",
-  });
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [availabilityFilter, setAvailabilityFilter] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
-  const [users, setUsers] = useState([
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        navigate("/login"); // 👈 redirect to login if not logged in
+      } else {
+        setCurrentUser({
+          email: user.email,
+          name: user.displayName || "John Doe",
+          photoURL:
+            user.photoURL ||
+            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+        });
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/login");
+  };
+
+  const handleNavigation = (path) => {
+    navigate(path);
+  };
+
+  const handleSearch = () => {
+    console.log(`Searching for: "${searchQuery}"`);
+  };
+
+  const users = [
+    // 👇 same dummy users list
     {
       id: 1,
       name: "Sarah Chen",
@@ -71,19 +104,7 @@ const HomePage = () => {
       skillsWanted: ["Kubernetes", "Terraform", "CI/CD"],
       availability: ["evenings"],
     },
-  ]);
-
-  const [availabilityFilter, setAvailabilityFilter] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const handleNavigation = (path) => {
-    console.log(`Navigating to: ${path}`);
-    // Use useNavigate in real app
-  };
-
-  const handleSearch = () => {
-    console.log(`Searching for: "${searchQuery}"`);
-  };
+  ];
 
   const filteredUsers = users.filter((user) => {
     const matchesAvailability =
@@ -102,6 +123,8 @@ const HomePage = () => {
     return matchesAvailability && matchesSearch;
   });
 
+  if (loading) return <div className="text-white text-center p-10">Loading...</div>;
+
   return (
     <div className="w-full min-h-screen bg-gray-50">
       {/* Navbar */}
@@ -109,36 +132,31 @@ const HomePage = () => {
         <h1 className="text-xl font-bold text-indigo-600">SkillHive</h1>
 
         <div className="flex items-center gap-4">
-          {currentUser ? (
-            <>
-              <button
-                onClick={() => handleNavigation("/requests")}
-                className="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 transition-colors"
-              >
-                Swap Request
-              </button>
-              <img
-                src={currentUser.photoURL || "/default-avatar.png"}
-                alt="Profile"
-                onClick={() => handleNavigation("/profile")}
-                className="w-10 h-10 rounded-full cursor-pointer border-2 border-gray-200 hover:border-indigo-300 transition-colors"
-              />
-            </>
-          ) : (
-            <button
-              onClick={() => handleNavigation("/login")}
-              className="text-sm text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded transition-colors"
-            >
-              Login
-            </button>
-          )}
+          <button
+            onClick={() => handleNavigation("/requests")}
+            className="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 transition-colors"
+          >
+            Swap Request
+          </button>
+          <img
+            src={currentUser?.photoURL}
+            alt="Profile"
+            onClick={() => handleNavigation("/profile")}
+            className="w-10 h-10 rounded-full cursor-pointer border-2 border-gray-200 hover:border-indigo-300 transition-colors"
+          />
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+          >
+            Logout
+          </button>
         </div>
       </nav>
 
       {/* Filters */}
       <div className="flex justify-center items-center gap-4 p-4 bg-white shadow-sm">
         <select
-          className="border border-gray-300 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          className="border border-gray-300 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
           value={availabilityFilter}
           onChange={(e) => setAvailabilityFilter(e.target.value)}
         >
@@ -150,7 +168,7 @@ const HomePage = () => {
         <div className="flex items-center gap-2">
           <input
             type="text"
-            className="border border-gray-300 px-3 py-2 rounded w-60 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="border border-gray-300 px-3 py-2 rounded w-60 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             placeholder="Search by skill..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -158,7 +176,7 @@ const HomePage = () => {
           />
           <button
             onClick={handleSearch}
-            className="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 transition-colors font-medium"
+            className="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600"
           >
             Search
           </button>
@@ -170,29 +188,27 @@ const HomePage = () => {
         {filteredUsers.map((user) => (
           <div
             key={user.id}
-            className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow flex flex-col gap-2"
+            className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow"
           >
             <div className="flex items-center gap-4">
               <img
-                src={user.photoURL || "/default-avatar.png"}
+                src={user.photoURL}
                 alt="Profile"
-                className="w-16 h-16 rounded-full border-2 border-gray-200 object-cover"
+                className="w-16 h-16 rounded-full border-2 object-cover"
               />
               <div>
                 <h2 className="font-bold text-lg text-gray-800">{user.name}</h2>
-                <p className="text-sm text-gray-500">
-                  Rating: ⭐ {user.rating || "N/A"}
-                </p>
+                <p className="text-sm text-gray-500">Rating: ⭐ {user.rating}</p>
               </div>
             </div>
 
             <div>
               <p className="font-semibold text-sm mt-2 text-gray-700">Skills Offered:</p>
               <div className="flex flex-wrap gap-2 mt-1">
-                {user.skillsOffered?.map((skill, i) => (
+                {user.skillsOffered.map((skill, i) => (
                   <span
                     key={i}
-                    className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium"
+                    className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs"
                   >
                     {skill}
                   </span>
@@ -203,10 +219,10 @@ const HomePage = () => {
             <div>
               <p className="font-semibold text-sm mt-2 text-gray-700">Skills Wanted:</p>
               <div className="flex flex-wrap gap-2 mt-1">
-                {user.skillsWanted?.map((skill, i) => (
+                {user.skillsWanted.map((skill, i) => (
                   <span
                     key={i}
-                    className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium"
+                    className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs"
                   >
                     {skill}
                   </span>
@@ -220,7 +236,7 @@ const HomePage = () => {
                   ? handleNavigation(`/request/${user.id}`)
                   : handleNavigation("/login")
               }
-              className="mt-4 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 transition-colors font-medium"
+              className="mt-4 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600"
             >
               Request Skill Swap
             </button>
@@ -231,10 +247,10 @@ const HomePage = () => {
       {/* Pagination */}
       <div className="flex justify-center my-6">
         <div className="flex gap-2">
-          {[1, 2, 3, 4, 5, 6, 7].map((num) => (
+          {[1, 2, 3].map((num) => (
             <button
               key={num}
-              className="px-3 py-1 border border-gray-300 rounded hover:bg-indigo-100 transition-colors"
+              className="px-3 py-1 border border-gray-300 rounded hover:bg-indigo-100"
             >
               {num}
             </button>
@@ -246,3 +262,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
